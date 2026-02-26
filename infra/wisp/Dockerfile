@@ -4,9 +4,7 @@ WORKDIR /app
 
 COPY package.json ./
 
-# node-gyp toolchain for native deps
-RUN apk add --no-cache python3 make g++ \
- && npm install --omit=dev
+RUN npm install --omit=dev
 
 COPY server.mjs ./
 

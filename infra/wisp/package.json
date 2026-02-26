@@ -8,6 +8,6 @@
     "start": "node server.mjs"
   },
   "dependencies": {
-    "wisp-server-node": "^1.1.7"
+    "@mercuryworkshop/wisp-js": "^0.4.0"
   }
 }

@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import wisp from "wisp-server-node";
+import wisp from "@mercuryworkshop/wisp-js/server";
 
 const host = process.env.HOST || "0.0.0.0";
 const port = Number(process.env.PORT || 4000);
