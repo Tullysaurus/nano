@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import wisp from "@mercuryworkshop/wisp-js/server";
+import { routeRequest } from "@mercuryworkshop/wisp-js/server";
 
 const host = process.env.HOST || "0.0.0.0";
 const port = Number(process.env.PORT || 4000);
@@ -27,7 +27,7 @@ server.on("upgrade", (req, socket, head) => {
         req.url?.startsWith(normalizedWispPath)
     ) {
         console.log(`[ws-accepted] ${req.url}`);
-        wisp.routeRequest(req, socket, head);
+        routeRequest(req, socket, head);
         return;
     }
 
