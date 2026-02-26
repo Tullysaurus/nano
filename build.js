@@ -5,4 +5,4 @@ const build = new ChemicalBuild({
     rammerhead: false,
 });
 
-await build.write("dist");
+await build.write();

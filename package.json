@@ -10,8 +10,8 @@
   "type": "module",
   "scripts": {
     "start": "node index.js",
-    "build": "vite build",
-    "build-static": "vite build && node build.js",
+    "build": "vite build --emptyOutDir",
+    "build-static": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && node build.js && vite build",
     "dev": "vite dev",
     "preview": "vite preview",
     "update": "npx npm-check-updates -u && pnpm i"
