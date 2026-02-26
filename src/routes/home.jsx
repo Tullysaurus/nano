@@ -243,6 +243,75 @@ const Home = function () {
         frame.src = targetHref || hostWindow.location.href;
         doc.body.appendChild(frame);
 
+        const toAbsoluteURL = (value, base) => {
+            if (!value || typeof value !== "string") {
+                return null;
+            }
+
+            if (
+                value.startsWith("javascript:") ||
+                value.startsWith("about:") ||
+                value.startsWith("#")
+            ) {
+                return null;
+            }
+
+            try {
+                return new URL(value, base).href;
+            } catch {
+                return null;
+            }
+        };
+
+        frame.addEventListener("load", () => {
+            const contentWindow = frame.contentWindow;
+            if (!contentWindow) {
+                return;
+            }
+
+            contentWindow.open = new Proxy(contentWindow.open, {
+                apply(_target, _thisArg, argArray) {
+                    const popupHref = toAbsoluteURL(
+                        argArray?.[0],
+                        contentWindow.location.href,
+                    );
+                    if (popupHref) {
+                        openInAboutBlank(false, popupHref);
+                    }
+                    return null;
+                },
+            });
+
+            contentWindow.addEventListener("click", (e) => {
+                const anchor = e.target?.closest?.("a[href]");
+                if (!anchor) {
+                    return;
+                }
+
+                const isNewTab =
+                    e.ctrlKey ||
+                    e.shiftKey ||
+                    e.metaKey ||
+                    (anchor.hasAttribute("target") &&
+                        anchor.getAttribute("target").includes("_blank"));
+
+                if (!isNewTab) {
+                    return;
+                }
+
+                const popupHref = toAbsoluteURL(
+                    anchor.href,
+                    contentWindow.location.href,
+                );
+                if (!popupHref) {
+                    return;
+                }
+
+                e.preventDefault();
+                openInAboutBlank(false, popupHref);
+            });
+        });
+
         if (closeOriginal) {
             window.location.replace("about:blank");
             setTimeout(() => {
