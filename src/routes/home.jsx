@@ -155,6 +155,51 @@ const Home = function () {
         }
     };
 
+    const toggleFullscreen = async () => {
+        if (document.fullscreenElement) {
+            await document.exitFullscreen();
+            return;
+        }
+
+        const currentTab = this.tabs[this.current];
+        const fullscreenTarget = currentTab?.iframe || document.documentElement;
+        if (fullscreenTarget?.requestFullscreen) {
+            await fullscreenTarget.requestFullscreen();
+        }
+    };
+
+    const openFullscreenTab = async () => {
+        const fullscreenTab = window.open("about:blank", "_blank");
+        if (!fullscreenTab) {
+            return;
+        }
+
+        const currentTab = this.tabs[this.current];
+        const currentIFrame = currentTab?.iframe;
+
+        if (currentIFrame) {
+            try {
+                fullscreenTab.location.href =
+                    currentIFrame.contentWindow.location.href;
+                return;
+            } catch {}
+
+            fullscreenTab.location.href = currentIFrame.src;
+            return;
+        }
+
+        const targetURL = currentTab?.url || this.search?.value;
+        if (!targetURL) {
+            fullscreenTab.close();
+            return;
+        }
+
+        fullscreenTab.location.href = await searchURL(
+            targetURL,
+            this.searchEngine,
+        );
+    };
+
     const updateTitles = () => {
         for (let tab of [...document.querySelectorAll(".tab")]) {
             tab.dispatchEvent(new Event("nanoUpdateTitle"));
@@ -413,6 +458,28 @@ const Home = function () {
                         class="rotate-animation h-8 w-8 rounded-full flex justify-center items-center mr-1 bg-Surface0 p-2"
                     >
                         <RotateCW class="rotate-animated" />
+                    </button>
+                    <button
+                        on:click={openFullscreenTab}
+                        aria-label="Open Fullscreen Tab"
+                        title="Open Fullscreen Tab"
+                        class="h-8 min-w-8 rounded-full flex justify-center items-center mr-1 bg-Surface0 px-2 text-sm font-bold"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                        >
+                            <path d="M7 17L17 7" />
+                            <path d="M7 7h10v10" />
+                        </svg>
                     </button>
                 </div>
             </div>
