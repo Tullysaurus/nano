@@ -1,0 +1,13 @@
+{
+  "name": "nano-wisp-server",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Minimal Wisp server for nano.",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "wisp-server-node": "^1.1.7"
+  }
+}

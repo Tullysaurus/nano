@@ -1,0 +1,21 @@
+services:
+  wisp:
+    build:
+      context: ./infra/wisp
+    container_name: nano-wisp
+    environment:
+      PORT: 4000
+      WISP_PATH: /wisp/
+    expose:
+      - "4000"
+    ports:
+      - "4000:4000"
+    restart: unless-stopped
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: nano-wisp-tunnel
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - wisp
+    restart: unless-stopped
