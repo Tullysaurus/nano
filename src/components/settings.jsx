@@ -430,6 +430,28 @@ const Settings = function () {
                     ))}
                 </div>
             </div>
+            <p class="select-none">About:blank</p>
+            <button
+                class="h-10 rounded-xl bg-Surface0 px-4 text-left select-none shrink-0"
+                aria-label="Open in about:blank"
+                on:click={() => this.openInAboutBlank && this.openInAboutBlank()}
+            >
+                Open in about:blank
+            </button>
+            <button
+                class="flex items-center h-10 rounded-xl bg-Surface0 px-4 select-none shrink-0"
+                aria-label="Auto open in about:blank"
+                on:click={() => (this.aboutBlankAuto = !this.aboutBlankAuto)}
+            >
+                <span class="whitespace-nowrap overflow-hidden text-ellipsis">
+                    Auto open on startup
+                </span>
+                <span class="ml-auto text-Subtext0">
+                    {use(this.aboutBlankAuto, (enabled) =>
+                        enabled ? "On" : "Off",
+                    )}
+                </span>
+            </button>
         </div>
     );
 };

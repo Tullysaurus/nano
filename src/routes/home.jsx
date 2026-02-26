@@ -30,11 +30,20 @@ const Home = function () {
     this.searchEngine =
         localStorage.getItem("@nano/searchEngine") ||
         "https://www.google.com/search?q=%s";
+    this.aboutBlankAuto =
+        localStorage.getItem("@nano/aboutBlankAuto") === "true";
     this.cloakTitle = localStorage.getItem("@nano/cloak/title") || "";
     this.cloakIcon = localStorage.getItem("@nano/cloak/icon") || "";
 
     useChange(this.searchEngine, () => {
         localStorage.setItem("@nano/searchEngine", this.searchEngine);
+    });
+
+    useChange(this.aboutBlankAuto, () => {
+        localStorage.setItem(
+            "@nano/aboutBlankAuto",
+            String(this.aboutBlankAuto),
+        );
     });
 
     useChange([this.sidebar, this.sidebarPage], () => {
@@ -169,36 +178,88 @@ const Home = function () {
     };
 
     const openFullscreenTab = async () => {
-        const fullscreenTab = window.open("about:blank", "_blank");
-        if (!fullscreenTab) {
-            return;
-        }
-
         const currentTab = this.tabs[this.current];
         const currentIFrame = currentTab?.iframe;
+        let targetHref = window.location.href;
 
         if (currentIFrame) {
             try {
-                fullscreenTab.location.href =
-                    currentIFrame.contentWindow.location.href;
+                targetHref = currentIFrame.contentWindow.location.href;
+            } catch {
+                targetHref = currentIFrame.src;
+            }
+        } else {
+            const targetURL = currentTab?.url || this.search?.value;
+            if (!targetURL) {
                 return;
-            } catch {}
-
-            fullscreenTab.location.href = currentIFrame.src;
-            return;
+            }
+            targetHref = await searchURL(targetURL, this.searchEngine);
         }
 
-        const targetURL = currentTab?.url || this.search?.value;
-        if (!targetURL) {
-            fullscreenTab.close();
-            return;
-        }
-
-        fullscreenTab.location.href = await searchURL(
-            targetURL,
-            this.searchEngine,
-        );
+        openInAboutBlank(false, targetHref);
     };
+
+    const openInAboutBlank = (closeOriginal = false, targetHref) => {
+        let hostWindow = window;
+        try {
+            if (window.top && window.top.open) {
+                hostWindow = window.top;
+            }
+        } catch {}
+
+        const hiddenTab = hostWindow.open("about:blank", "_blank");
+        if (!hiddenTab) {
+            return false;
+        }
+
+        const doc = hiddenTab.document;
+        doc.open();
+        doc.write(
+            "<!doctype html><html><head><meta charset='utf-8'><title>about:blank</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#000}iframe{border:0;width:100%;height:100%}</style></head><body></body></html>",
+        );
+        doc.close();
+
+        const cloakTitle = localStorage.getItem("@nano/cloak/title") || "nano.";
+        const cloakIcon = localStorage.getItem("@nano/cloak/icon") || "/logo.svg";
+        let cloakIconURL;
+        try {
+            cloakIconURL = new URL(cloakIcon, window.location.origin).href;
+        } catch {
+            cloakIconURL = new URL("/logo.svg", window.location.origin).href;
+        }
+
+        doc.title = cloakTitle;
+        let favicon = doc.querySelector("link[rel='icon']");
+        if (!favicon) {
+            favicon = doc.createElement("link");
+            favicon.setAttribute("rel", "icon");
+            doc.head.appendChild(favicon);
+        }
+        favicon.href = cloakIconURL;
+
+        const frame = doc.createElement("iframe");
+        frame.referrerPolicy = "no-referrer";
+        frame.allow = "fullscreen";
+        frame.src = targetHref || hostWindow.location.href;
+        doc.body.appendChild(frame);
+
+        if (closeOriginal) {
+            window.location.replace("about:blank");
+            setTimeout(() => {
+                window.close();
+            }, 25);
+        }
+
+        return true;
+    };
+
+    if (this.aboutBlankAuto && window.top === window.self) {
+        const attemptedKey = "@nano/aboutBlankAutoAttempted";
+        if (!sessionStorage.getItem(attemptedKey)) {
+            sessionStorage.setItem(attemptedKey, "true");
+            openInAboutBlank(true);
+        }
+    }
 
     const updateTitles = () => {
         for (let tab of [...document.querySelectorAll(".tab")]) {
@@ -394,8 +455,10 @@ const Home = function () {
                 bind:sidebarPage={use(this.sidebarPage)}
                 bind:theme={use(this.theme)}
                 bind:searchEngine={use(this.searchEngine)}
+                bind:aboutBlankAuto={use(this.aboutBlankAuto)}
                 bind:cloakTitle={use(this.cloakTitle)}
                 bind:cloakIcon={use(this.cloakIcon)}
+                openInAboutBlank={openInAboutBlank}
             />
             <Windows
                 bind:windows={use(this.windows)}
