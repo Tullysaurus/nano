@@ -14,8 +14,7 @@
     "build-static": "vite build && node build.js",
     "dev": "vite dev",
     "preview": "vite preview",
-    "update": "npx npm-check-updates -u && pnpm i",
-    "revert": "git reset HEAD --hard && git clean -fd"
+    "update": "npx npm-check-updates -u && pnpm i"
   },
   "dependencies": {
     "chemicaljs": "^2.3.1",
